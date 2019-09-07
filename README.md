@@ -1,4 +1,5 @@
 # Toyshell
+
 ## PART 1
 
 Your toyshell program must provide services to support the following commands and features:
@@ -66,5 +67,3 @@ l. <Linux_command>: Executes the Linux command Linux_command, corresponding to a
 m. Error handling: Your approach should effectively identify and recover from errors. For example, bad input and/or the inability to execute a command should not cause your toyshell to crash. To get credit for this component of the assignment, you must be able to demonstrate that you can handle at least ten unique errors.
 
 Note: You must handle all the built-in commands with exactly the same syntax as shown above. Thus, an important part of the toyshell program will be to parse commands entered at the command prompt to break them down into their component parts. Once a command has been parsed, the component parts can be checked to ensure that a valid command has been entered and that it adheres to the required syntax. One approach to effective parsing is to use the C-string strtok function (to be covered in detail in the first lab).yshell
-
-As an assignement, toyshell should be the implementation of a shell program. 
