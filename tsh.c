@@ -15,6 +15,7 @@ int main (int argc, char *argv []){
     /* initialize the counter */
     int counter = 1;
     
+    /* Loop  */
 
     return 0;
 
@@ -26,32 +27,25 @@ int main (int argc, char *argv []){
 void TokenizeCommandLine (char *tokens[], char *commandLine)
 {
     char *token [MAX_TOKENS];
-    char *workCommandLine = malloc(sizeof(commandLine) + 1);
+    char *workCommandLine = (char*) malloc(sizeof(commandLine) + 1);
     int i;
     int j;
 
-    for (i = 0; i < MAX_TOKENS; i ++)
-    {
-        tokens [i] = "";
-    }
+    for (i = 0; i < MAX_TOKENS; i++)
+        tokens[i] = "";
+    
     strcpy (workCommandLine, &commandLine);
     i = 0;
-    if ((token [i] = strtok (workCommandLine, " ")) != NULL)
-    {
-        i ++;
-        while ((token [i] = strtok (NULL, " ")) != NULL)
-        {
-            i ++;
-        }
+    if ((token[i] = strtok(workCommandLine, " ")) != NULL){
+        i++;
+        while ((token[i] = strtok(NULL, " ")) != NULL)
+            i++;
     }
     j = i;
 
-    for (i = 0; i < j; i ++)
-    {
-        tokens [i] = token [i];
-    }
+    for (i = 0; i < j; i++)
+        tokens[i] = token[i];
 
-    //delete [] workCommandLine;
     free(workCommandLine);
 
     return;
