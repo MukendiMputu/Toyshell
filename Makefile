@@ -22,4 +22,4 @@ check : all
 
 # Clean up all build targets so that one may get a clean build
 clean :
-		rm -f *.o toyshell core*
+		rm -f *.o toyshell core* *core*
