@@ -20,10 +20,6 @@ int ExecuteShellProgram() {
     size_t lineBuff = 256;                                      // size of a raw command entered by the user
     char *rawCommand = (char *) malloc(sizeof(char)*lineBuff);
     
-
-    /* for (int i = 0; i < MAX_COMMAND_IN_HISTORY; i++)
-        history_buffer[i] = ""; */
-    
     /* initializing array of char pointers */
     char* commandTokens[] = {"", "", "", "", "", "", "", ""};
     
@@ -33,24 +29,50 @@ int ExecuteShellProgram() {
         //print out the prompt and wait... if user entered a command, then tokenize and process in
         printf("%s[%i]%s ", prompt, counter, terminator);
         
-
         if(getline(&rawCommand, &lineBuff, stdin) != -1){
             
             if((rawCommand != NULL) && (rawCommand[0] != '\n')){
                 //put command in history_buffer
-                if (counter >= 10)
-                {
-                    memmove(history_buffer[counter%10], rawCommand, strlen(rawCommand));
-                    printf("toyshell: history buffer full!\n");
+                if (counter >= 10){
 
-                }
-                else
-                {
+                    // in order to simulate a stack, we'll use a temporary buffer for  
+                    char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
+                    for(int idxShift = 0; idxShift < 9; idxShift++){
+                        //transfering the actual content of the history_buffer with memmove,..
+                        memmove(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
+                        memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
+                    }
+                    //...then with memset reset the memory 
+                    memset(history_buffer[0], 0, strlen(history_buffer[0]));
+                    
+                    for(int idxShift = 0; idxShift < 9; idxShift++) {
+
+                        memmove(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
+                        memset(shift_buffer[idxShift], 0, strlen(shift_buffer[idxShift]));
+                    }
+                    memset(history_buffer[9], 0, strlen(history_buffer[9]));
+                    memmove(history_buffer[9], rawCommand, strlen(rawCommand)); // copying the new command entered
+
+                } else {
                     memmove(history_buffer[counter], rawCommand, strlen(rawCommand));
                 }
                 
                 counter++; 
             }
+
+            if (rawCommand[0] == '!')
+            {
+                if (strlen(rawCommand) > 4){
+                    printf ("toyshell: Usage %s <n> \n\t\twith n between 1 and 10.\n", rawCommand[0]);
+                    return EXIT_SUCCESS;
+                }
+                if (strlen(rawCommand) <= 2 || strlen(rawCommand) == 4)
+                    rawCommand = history_buffer[9];
+
+                if(strlen(rawCommand) == 3 )
+                    rawCommand = history_buffer[rawCommand[2]];
+            }
+            
             tokenNumb = TokenizeCommandLine(commandTokens, rawCommand);
             ProcessCommand(commandTokens, tokenNumb);
 
@@ -234,19 +256,8 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
     	}
     	for (int i = 0; i < MAX_COMMAND_IN_HISTORY; i++){
             if (history_buffer[i] != "")
-                printf("%s", history_buffer[i]);
+                printf("%i %s", i+1, history_buffer[i]);
         }
-        return EXIT_SUCCESS;
-    }
-     
-
-    if (!strcmp(tokens[0],"!")){
-
-    	if (tokenCount > 2){
-       		printf ("toyshell: Usage %s <n>.\n", tokens[0]);
-            return EXIT_SUCCESS;
-    	}
-    	// ToDo
         return EXIT_SUCCESS;
     }
 
