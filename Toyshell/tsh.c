@@ -1,7 +1,6 @@
 #include "helpers.h"
 
 
-
 int main (int argc, char *argv []){
     
     // opening files, in which prompt and terminator are saved

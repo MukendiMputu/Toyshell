@@ -11,7 +11,6 @@ char terminator[128];
 char aliases_buffer[10][2];
 
 
-
 void StopTheShell();
 int IsAlias(char *token);
 int TokenizeCommandLine (char * tokens[], char *commandLine);
