@@ -59,18 +59,22 @@ int ExecuteShellProgram() {
                 
                 counter++; 
             }
-
+            TrimCommandLine(rawCommand);
             if (rawCommand[0] == '!')
             {
                 if (strlen(rawCommand) > 4){
                     printf ("toyshell: Usage %s <n> \n\t\twith n between 1 and 10.\n", rawCommand[0]);
                     return EXIT_SUCCESS;
                 }
-                if (strlen(rawCommand) <= 2 || strlen(rawCommand) == 4)
-                    rawCommand = history_buffer[9];
+                if (strlen(rawCommand) <= 2 || strlen(rawCommand) == 4){
+                    memset(rawCommand, 0, strlen(rawCommand));
+                    memmove(rawCommand, history_buffer[9], strlen(history_buffer[9]));
+                }
 
-                if(strlen(rawCommand) == 3 )
-                    rawCommand = history_buffer[rawCommand[2]];
+                if(strlen(rawCommand) == 3 ){
+                    memset(rawCommand, 0, strlen(rawCommand));
+                    memmove(rawCommand, history_buffer[rawCommand[2]-1], strlen(history_buffer[rawCommand[2]-1]));
+                }
             }
             
             tokenNumb = TokenizeCommandLine(commandTokens, rawCommand);
@@ -155,7 +159,7 @@ int TokenizeCommandLine( char *tokens[], char *buff){
 	int num_chars = strnlen(buff, 256);
     char *workCommand = (char *) malloc(sizeof(buff));
 
-    TrimCommandLine(buff);
+    //TrimCommandLine(buff);
 
 	strncpy(workCommand, buff, num_chars);
 
@@ -321,7 +325,7 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
  *  @return 
  */
 void TrimCommandLine(char *commandLine){
-    int i, j = 0;
+    
     while(*commandLine == ' ') {
         
         *commandLine = '\0'; // deletion
