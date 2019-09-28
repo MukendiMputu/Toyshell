@@ -103,7 +103,7 @@ int SetShellTerminator(char *shellTerminator){
     if (shell_terminator)
         fputs(terminator, shell_terminator);
     else{
-        printf("Failed to save shell name to a file!");
+        printf("Failed to save shell terminator to a file!");
         return EXIT_FAILURE;
     }
     fclose(shell_terminator);
