@@ -334,7 +334,7 @@ void FetchingBang(char *commandLine){
             if (strlen(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
                 printf("toyshell: Enter a number between 1 and 10.\n");
                 memset(commandLine, 0, strlen(commandLine));
-                //memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
+                
                 return;
             }
             memset(commandLine, 0, strlen(commandLine));
