@@ -80,7 +80,7 @@ int IsAlias(char *token){
 */
 int SetShellName(char *shellName){
     shell_name = fopen("shell_name.txt","w+");
-    strcpy(prompt, shellName);
+    strncpy(prompt, shellName, strlen(shellName));
 
     if (shell_name)
         fputs(prompt, shell_name);
@@ -98,7 +98,7 @@ int SetShellName(char *shellName){
 */
 int SetShellTerminator(char *shellTerminator){
     shell_terminator = fopen("shell_terminator.txt","w+");
-    strcpy(terminator, shellTerminator);
+    strncpy(terminator, shellTerminator, strlen(shellTerminator));
 
     if (shell_terminator)
         fputs(terminator, shell_terminator);
@@ -304,8 +304,8 @@ void SaveInHistory(char *commandLine){
         // in order to simulate a stack, we'll use a temporary buffer for  
         char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
         for(int idxShift = 0; idxShift < 9; idxShift++){
-            //transfering the actual content of the history_buffer with memcpy,..
-            memcpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
+            //transfering the actual content of the history_buffer with strncpy,..
+            strncpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
             memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
         }
         //...then with memset reset the memory 
@@ -313,14 +313,14 @@ void SaveInHistory(char *commandLine){
         
         for(int idxShift = 0; idxShift < 9; idxShift++) {
 
-            memcpy(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
+            strncpy(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
             memset(shift_buffer[idxShift], 0, strlen(shift_buffer[idxShift]));
         }
         memset(history_buffer[9], 0, strlen(history_buffer[9]));
-        memcpy(history_buffer[9], commandLine, strlen(commandLine)); // copying the new command entered
+        strncpy(history_buffer[9], commandLine, strlen(commandLine)); // copying the new command entered
 
     } else {
-        memcpy(history_buffer[counter-1], commandLine, strlen(commandLine));
+        strncpy(history_buffer[counter-1], commandLine, strlen(commandLine));
     }
 }
 
@@ -334,17 +334,17 @@ void FetchingBang(char *commandLine){
             if (strlen(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
                 printf("toyshell: Enter a number between 1 and 10.\n");
                 memset(commandLine, 0, strlen(commandLine));
-                //memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
+                //strncpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
                 return;
             }
             memset(commandLine, 0, strlen(commandLine));
-            memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
+            strncpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
             
         }
 
         int pos = commandLine[2]-48; //in ASCII numbers start from 48
         memset(commandLine, 0, strlen(commandLine));
-        memcpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
+        strncpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
         
     }
 }
