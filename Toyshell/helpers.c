@@ -36,7 +36,8 @@ int ExecuteShellProgram() {
             if(rawCommand[0] == ' ')
                 TrimCommandLine(rawCommand);
 
-            FetchingBang(rawCommand); // '!' needs to be processed before tokenizing
+            while(FetchingBang(rawCommand))
+                ; // '!' needs to be processed before tokenizing
 
             tokenNumb = TokenizeCommandLine(commandTokens, rawCommand);
             ProcessCommand(commandTokens, tokenNumb);
@@ -303,6 +304,10 @@ void SaveInHistory(char *commandLine){
 
         // in order to simulate a stack, we'll use a temporary buffer for  
         char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
+        for (int i = 0 ; i < 9; i++)
+            memset(history_buffer[i], 0, strlen(history_buffer[i]));
+        
+        
         for(int idxShift = 0; idxShift < 9; idxShift++){
             //transfering the actual content of the history_buffer with memcpy,..
             memcpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
@@ -324,27 +329,28 @@ void SaveInHistory(char *commandLine){
     }
 }
 
-void FetchingBang(char *commandLine){
+int FetchingBang(char *commandLine){
     if (commandLine[0] == '!'){
         if (strlen(commandLine) > 5){
             printf ("toyshell: Usage ! <n> \n\t\twith n between 1 and 10.\n");
-            return;
+            return 0;
         }
         if (strlen(commandLine) == 2 || strlen(commandLine) == 5){
             if (strlen(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
                 printf("toyshell: Enter a number between 1 and 10.\n");
                 memset(commandLine, 0, strlen(commandLine));
                 
-                return;
+                return 0;
             }
             memset(commandLine, 0, strlen(commandLine));
             memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
-            
+            return 1;
         }
 
         int pos = commandLine[2]-48; //in ASCII numbers start from 48
         memset(commandLine, 0, strlen(commandLine));
         memcpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
-        
+        return 1;
     }
+    return 0;
 }
