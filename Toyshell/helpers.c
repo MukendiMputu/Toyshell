@@ -2,7 +2,7 @@
 
 
 #define MAX_COMMAND_IN_HISTORY 10
-#define MAX_COMMAND_LENGTH 512
+#define MAX_COMMAND_LENGTH 32
 
 // initializing counter, prompt and terminated 
 int counter = 1;
@@ -10,17 +10,13 @@ FILE *shell_name;
 FILE *shell_terminator;
 char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
 
-/* Loop until the program is terminated
- * @param
- * @return
- */
+// Loop until the program is terminated
 int ExecuteShellProgram() {
     
     int tokenNumb = 0;                                          // will be use to count to CL tokens
     size_t lineBuff = 256;                                      // size of a raw command entered by the user
     char *rawCommand = (char *) malloc(sizeof(char)*lineBuff);
     
-    /* initializing array of char pointers */
     char* commandTokens[] = {"", "", "", "", "", "", "", ""};
     
     /* Loop until the program is terminated */
@@ -32,59 +28,16 @@ int ExecuteShellProgram() {
         if(getline(&rawCommand, &lineBuff, stdin) != -1){
             
             if((rawCommand != NULL) && (rawCommand[0] != '\n')){
-                //put command in history_buffer
-                if (counter >= 10){
-
-                    // in order to simulate a stack, we'll use a temporary buffer for  
-                    char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
-                    for(int idxShift = 0; idxShift < 9; idxShift++){
-                        //transfering the actual content of the history_buffer with memmove,..
-                        memmove(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
-                        memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
-                    }
-                    //...then with memset reset the memory 
-                    memset(history_buffer[0], 0, strlen(history_buffer[0]));
-                    
-                    for(int idxShift = 0; idxShift < 9; idxShift++) {
-
-                        memmove(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
-                        memset(shift_buffer[idxShift], 0, strlen(shift_buffer[idxShift]));
-                    }
-                    memset(history_buffer[9], 0, strlen(history_buffer[9]));
-                    memmove(history_buffer[9], rawCommand, strlen(rawCommand)); // copying the new command entered
-
-                } else {
-                    memmove(history_buffer[counter], rawCommand, strlen(rawCommand));
-                }
                 
+                SaveInHistory(rawCommand); //put command in history_buffer
                 counter++; 
             }
 
             if(rawCommand[0] == ' ')
                 TrimCommandLine(rawCommand);
 
-            if (rawCommand[0] == '!')
-            {
-                if (strlen(rawCommand) > 5){
-                    printf ("toyshell: Usage %s <n> \n\t\twith n between 1 and 10.\n", rawCommand[0]);
-                    return EXIT_SUCCESS;
-                }
-                if (strlen(rawCommand) == 2 || strlen(rawCommand) == 5){
-                    if (strlen(rawCommand) == 5 && rawCommand[3] >= '1'){
-                        printf("toyshell: Enter a number between 1 and 10. ");
-                        return EXIT_SUCCESS;
-                    }
-                    memset(rawCommand, 0, strlen(rawCommand));
-                    memmove(rawCommand, history_buffer[9], strlen(history_buffer[9]));
-                    
-                }
+            FetchingBang(rawCommand); // '!' needs to be processed before tokenizing
 
-                if(strlen(rawCommand) == 3 ){
-                    memset(rawCommand, 0, strlen(rawCommand));
-                    memmove(rawCommand, history_buffer[rawCommand[2]-1], strlen(history_buffer[rawCommand[2]-1]));
-                }
-            }
-            
             tokenNumb = TokenizeCommandLine(commandTokens, rawCommand);
             ProcessCommand(commandTokens, tokenNumb);
 
@@ -214,8 +167,7 @@ void ProcessCommand (char * tokens[], int tokenCount){
             perror(prompt);
             exit(EXIT_FAILURE);
         }
-        printf("%s: executing %s ...\n", prompt, tokens[0]);
-
+        
     }else { // meanwhile the parent process waits
         waitpid(pid, NULL, 0);
     }
@@ -267,9 +219,10 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
             return EXIT_SUCCESS;
     	}
     	for (int i = 0; i < MAX_COMMAND_IN_HISTORY; i++){
-            if (history_buffer[i] != "")
+            if (*history_buffer[i] != '\0')
                 printf("%i %s", i+1, history_buffer[i]);
         }
+        printf("\n");
         return EXIT_SUCCESS;
     }
 
@@ -335,12 +288,63 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
 void TrimCommandLine(char *commandLine){
     char *temp = commandLine;
 
-    while(*temp == ' ') {
+    do{
         *temp = '\0'; // deletion
         temp += 1;    // incrementing address 
         temp++; // fetching the next character
-    }
+    }while(*temp == ' ');
     memset(commandLine, 0, strlen(commandLine));
     memcpy(commandLine, temp, strlen(temp));
 
+}
+
+void SaveInHistory(char *commandLine){
+    if (counter >= 10){
+
+        // in order to simulate a stack, we'll use a temporary buffer for  
+        char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
+        for(int idxShift = 0; idxShift < 9; idxShift++){
+            //transfering the actual content of the history_buffer with memcpy,..
+            memcpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
+            memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
+        }
+        //...then with memset reset the memory 
+        memset(history_buffer[0], 0, strlen(history_buffer[0]));
+        
+        for(int idxShift = 0; idxShift < 9; idxShift++) {
+
+            memcpy(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
+            memset(shift_buffer[idxShift], 0, strlen(shift_buffer[idxShift]));
+        }
+        memset(history_buffer[9], 0, strlen(history_buffer[9]));
+        memcpy(history_buffer[9], commandLine, strlen(commandLine)); // copying the new command entered
+
+    } else {
+        memcpy(history_buffer[counter-1], commandLine, strlen(commandLine));
+    }
+}
+
+void FetchingBang(char *commandLine){
+    if (commandLine[0] == '!'){
+        if (strlen(commandLine) > 5){
+            printf ("toyshell: Usage %s <n> \n\t\twith n between 1 and 10.\n", commandLine[0]);
+            return;
+        }
+        if (strlen(commandLine) == 2 || strlen(commandLine) == 5){
+            if (strlen(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
+                printf("toyshell: Enter a number between 1 and 10.\n");
+                memset(commandLine, 0, strlen(commandLine));
+                //memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
+                return;
+            }
+            memset(commandLine, 0, strlen(commandLine));
+            memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
+            
+        }
+
+        int pos = commandLine[2]-48; //in ASCII numbers start from 48
+        memset(commandLine, 0, strlen(commandLine));
+        memcpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
+        
+    }
 }

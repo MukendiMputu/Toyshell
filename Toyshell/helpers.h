@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <signal.h>
+#include <ctype.h>
 
 char prompt[128];
 char terminator[128];
@@ -20,3 +21,5 @@ int SetShellName(char *shell_name);
 int SetShellTerminator(char *shell_terminator);
 int IsBuiltinCommand (char * tokens[], int tokenCount);
 void TrimCommandLine(char *command);
+void SaveInHistory(char *command);
+void FetchingBang(char *command);
