@@ -327,7 +327,7 @@ void SaveInHistory(char *commandLine){
 void FetchingBang(char *commandLine){
     if (commandLine[0] == '!'){
         if (strlen(commandLine) > 5){
-            printf ("toyshell: Usage %s <n> \n\t\twith n between 1 and 10.\n", commandLine[0]);
+            printf ("toyshell: Usage ! <n> \n\t\twith n between 1 and 10.\n");
             return;
         }
         if (strlen(commandLine) == 2 || strlen(commandLine) == 5){
