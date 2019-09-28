@@ -59,16 +59,24 @@ int ExecuteShellProgram() {
                 
                 counter++; 
             }
-            TrimCommandLine(rawCommand);
+
+            if(rawCommand[0] == ' ')
+                TrimCommandLine(rawCommand);
+
             if (rawCommand[0] == '!')
             {
-                if (strlen(rawCommand) > 4){
+                if (strlen(rawCommand) > 5){
                     printf ("toyshell: Usage %s <n> \n\t\twith n between 1 and 10.\n", rawCommand[0]);
                     return EXIT_SUCCESS;
                 }
-                if (strlen(rawCommand) <= 2 || strlen(rawCommand) == 4){
+                if (strlen(rawCommand) == 2 || strlen(rawCommand) == 5){
+                    if (strlen(rawCommand) == 5 && rawCommand[3] >= '1'){
+                        printf("toyshell: Enter a number between 1 and 10. ");
+                        return EXIT_SUCCESS;
+                    }
                     memset(rawCommand, 0, strlen(rawCommand));
                     memmove(rawCommand, history_buffer[9], strlen(history_buffer[9]));
+                    
                 }
 
                 if(strlen(rawCommand) == 3 ){
@@ -325,13 +333,14 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
  *  @return 
  */
 void TrimCommandLine(char *commandLine){
-    
-    while(*commandLine == ' ') {
-        
-        *commandLine = '\0'; // deletion
-        commandLine += 1;    // incrementing address 
-        
-        commandLine++; // fetching the next character
+    char *temp = commandLine;
+
+    while(*temp == ' ') {
+        *temp = '\0'; // deletion
+        temp += 1;    // incrementing address 
+        temp++; // fetching the next character
     }
+    memset(commandLine, 0, strlen(commandLine));
+    memcpy(commandLine, temp, strlen(temp));
 
 }

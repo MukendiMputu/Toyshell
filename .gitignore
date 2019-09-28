@@ -3,3 +3,6 @@ Toyshell/shell.c
 Toyshell/tsh.o
 Toyshell/helpers.o
 Toyshell/toyshell
+Toyshell/build.sh
+Toyshell/debug.sh
+Toyshell/helpers.
