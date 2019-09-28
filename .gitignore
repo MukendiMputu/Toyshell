@@ -10,3 +10,4 @@ Toyshell/backup.sh
 Toyshell/backup/helpers.c
 Toyshell/backup/shell.c
 Toyshell/backup/tsh.c
+Toyshell/backup/helpers.h
