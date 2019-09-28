@@ -7,3 +7,6 @@ Toyshell/build.sh
 Toyshell/debug.sh
 Toyshell/helpers.
 Toyshell/backup.sh
+Toyshell/backup/helpers.c
+Toyshell/backup/shell.c
+Toyshell/backup/tsh.c
