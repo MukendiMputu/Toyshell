@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <ctype.h>
+#include <math.h>
 
 char prompt[128];
 char terminator[128];
@@ -22,4 +23,4 @@ int SetShellTerminator(char *shell_terminator);
 int IsBuiltinCommand (char * tokens[], int tokenCount);
 void TrimCommandLine(char *command);
 void SaveInHistory(char *command);
-void FetchingBang(char *command);
+int FetchingBang(char *command);

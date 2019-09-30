@@ -2,20 +2,30 @@
 
 
 #define MAX_COMMAND_IN_HISTORY 10
-#define MAX_COMMAND_LENGTH 32
+#define MAX_COMMAND_LENGTH 512
 
 // initializing counter, prompt and terminated 
-int counter = 1;
+int counter = 1, alias_count = 0;
 FILE *shell_name;
 FILE *shell_terminator;
 char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
+/* struct history_entry{
+    int idx;
+    char entry[MAX_COMMAND_LENGTH];
+} history_buffer[10] = {1, "", 2, "", 3, "", 4, "", 5, "", 6, "", 7, "", 8, "", 9, "", 10, ""}; */
+
+struct alias{
+    char *name;
+    char *substitute;
+} aliases[10] = {"aa", "", "bb", "", "cc", "", "dd", "", "ee", "", "ff", "", "gg", "", "hh", "", "ii", "", "jj", ""};
+
 
 // Loop until the program is terminated
 int ExecuteShellProgram() {
     
     int tokenNumb = 0;                                          // will be use to count to CL tokens
     size_t lineBuff = 256;                                      // size of a raw command entered by the user
-    char *rawCommand = (char *) malloc(sizeof(char)*lineBuff);
+    char *rawCommand = (char *) malloc(/* pow(2,MAX_COMMAND_LENGTH) */ MAX_COMMAND_LENGTH);
     
     char* commandTokens[] = {"", "", "", "", "", "", "", ""};
     
@@ -36,8 +46,8 @@ int ExecuteShellProgram() {
             if(rawCommand[0] == ' ')
                 TrimCommandLine(rawCommand);
 
-            while(FetchingBang(rawCommand))
-                ; // '!' needs to be processed before tokenizing
+            while(FetchingBang(rawCommand))// '!' needs to be processed before tokenizing
+                ; 
 
             tokenNumb = TokenizeCommandLine(commandTokens, rawCommand);
             ProcessCommand(commandTokens, tokenNumb);
@@ -121,9 +131,7 @@ int TokenizeCommandLine( char *tokens[], char *buff){
 	int num_chars = strnlen(buff, 256);
     char *workCommand = (char *) malloc(sizeof(buff));
 
-    //TrimCommandLine(buff);
-
-	strncpy(workCommand, buff, num_chars);
+    strncpy(workCommand, buff, num_chars);
 
     for (int i = 0; i < num_chars; i++) {
 		switch (workCommand[i]) {
@@ -239,6 +247,18 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
          *    if compare to token[1] positive
          *      then override corresponding entry with token[2]
          */
+        for (int i = 0; i < 10; i++){
+            if (tokens[1] = aliases[i].name)
+                aliases[i].substitute = tokens[2];
+        }
+            if(alias_count <10){
+                aliases[alias_count].name = tokens[1];
+                aliases[alias_count].substitute = tokens[2];
+            }else
+            {
+                printf("Alias's buffer is full. You should override one of the existing alias.\n");
+            }
+            
         return EXIT_SUCCESS;
     }
 
@@ -294,8 +314,8 @@ void TrimCommandLine(char *commandLine){
         temp += 1;    // incrementing address 
         temp++; // fetching the next character
     }while(*temp == ' ');
-    memset(commandLine, 0, strlen(commandLine));
-    memcpy(commandLine, temp, strlen(temp));
+    memset(commandLine, 0, sizeof(commandLine));
+    strncpy(commandLine, temp, sizeof(temp));
 
 }
 
@@ -305,27 +325,27 @@ void SaveInHistory(char *commandLine){
         // in order to simulate a stack, we'll use a temporary buffer for  
         char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
         for (int i = 0 ; i < 9; i++)
-            memset(history_buffer[i], 0, strlen(history_buffer[i]));
+            memset(history_buffer[i], 0, sizeof(history_buffer[i]));
         
         
         for(int idxShift = 0; idxShift < 9; idxShift++){
-            //transfering the actual content of the history_buffer with memcpy,..
-            memcpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
-            memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
+            //transfering the actual content of the history_buffer with strncpy,..
+            strncpy(shift_buffer[idxShift], history_buffer[idxShift+1], sizeof(history_buffer[idxShift+1]));
+            memset(history_buffer[idxShift+1], 0, sizeof(history_buffer[idxShift+1]));
         }
         //...then with memset reset the memory 
-        memset(history_buffer[0], 0, strlen(history_buffer[0]));
+        memset(history_buffer[0], 0, sizeof(history_buffer[0]));
         
         for(int idxShift = 0; idxShift < 9; idxShift++) {
 
-            memcpy(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
-            memset(shift_buffer[idxShift], 0, strlen(shift_buffer[idxShift]));
+            strncpy(history_buffer[idxShift], shift_buffer[idxShift], sizeof(shift_buffer[idxShift]));
+            memset(shift_buffer[idxShift], 0, sizeof(shift_buffer[idxShift]));
         }
-        memset(history_buffer[9], 0, strlen(history_buffer[9]));
-        memcpy(history_buffer[9], commandLine, strlen(commandLine)); // copying the new command entered
+        memset(history_buffer[9], 0, sizeof(history_buffer[9]));
+        strncpy(history_buffer[9], commandLine, sizeof(commandLine)); // copying the new command entered
 
     } else {
-        memcpy(history_buffer[counter-1], commandLine, strlen(commandLine));
+        strncpy(history_buffer[counter-1], commandLine, sizeof(commandLine));
     }
 }
 
@@ -336,20 +356,24 @@ int FetchingBang(char *commandLine){
             return 0;
         }
         if (strlen(commandLine) == 2 || strlen(commandLine) == 5){
-            if (strlen(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
+            if (sizeof(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
                 printf("toyshell: Enter a number between 1 and 10.\n");
-                memset(commandLine, 0, strlen(commandLine));
+                memset(commandLine, 0, sizeof(commandLine));
                 
                 return 0;
             }
-            memset(commandLine, 0, strlen(commandLine));
-            memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
+            memset(commandLine, 0, sizeof(commandLine));
+            strncpy(commandLine, history_buffer[9], sizeof(history_buffer[9]));
             return 1;
         }
 
         int pos = commandLine[2]-48; //in ASCII numbers start from 48
-        memset(commandLine, 0, strlen(commandLine));
-        memcpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
+        memset(commandLine, 0, sizeof(commandLine));
+        strncpy(commandLine, history_buffer[pos-1], sizeof(history_buffer[pos-1]));
+        
+        if(commandLine[0] == ' ')
+                TrimCommandLine(commandLine);
+
         return 1;
     }
     return 0;
