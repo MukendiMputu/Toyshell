@@ -299,11 +299,12 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
     return 1;
 }
 
+
 /** This function uses pointer arithmetic to trim leading space characters
  *  out of command entered. As long as a character in the command is a white
  *  space, we delete it (assigning \0 to it) and increment to starting address
  *  our pointer points to by one.
- *  @param char *commandLine - raw command
+ *  @param char *commandLine - rawcommand
  *  @return 
  */
 void TrimCommandLine(char *commandLine){
