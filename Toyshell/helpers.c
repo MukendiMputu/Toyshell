@@ -25,7 +25,7 @@ int ExecuteShellProgram() {
     
     int tokenNumb = 0;                                          // will be use to count to CL tokens
     size_t lineBuff = 256;                                      // size of a raw command entered by the user
-    char *rawCommand = (char *) malloc(/* pow(2,MAX_COMMAND_LENGTH) */ MAX_COMMAND_LENGTH);
+    char *rawCommand = (char *) malloc( MAX_COMMAND_LENGTH);
     
     char* commandTokens[] = {"", "", "", "", "", "", "", ""};
     
@@ -38,7 +38,6 @@ int ExecuteShellProgram() {
         if(getline(&rawCommand, &lineBuff, stdin) != -1){
             
             if((rawCommand != NULL) && (rawCommand[0] != '\n')){
-                
                 SaveInHistory(rawCommand); //put command in history_buffer
                 counter++; 
             }
@@ -46,6 +45,7 @@ int ExecuteShellProgram() {
             if(rawCommand[0] == ' ')
                 TrimCommandLine(rawCommand);
 
+            FindAndIgnore$(rawCommand);
             while(FetchingBang(rawCommand))// '!' needs to be processed before tokenizing
                 ; 
 
@@ -378,4 +378,23 @@ int FetchingBang(char *commandLine){
         return 1;
     }
     return 0;
+}
+
+int FindAndIgnore$(char *commandLine){
+    int i = 0;
+    int found_comment = 0;
+    for (; i < strlen(commandLine); i++){
+        if(commandLine[i] == '$'){
+            commandLine[i] = '\n';
+            found_comment = 1;
+            break;
+        }
+    }
+
+    if(found_comment){
+        for (int j = i; j < sizeof(commandLine); j++)
+        commandLine[j] = '\0';
+    }
+    
+    return i;
 }

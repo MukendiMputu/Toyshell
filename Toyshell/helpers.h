@@ -24,3 +24,4 @@ int IsBuiltinCommand (char * tokens[], int tokenCount);
 void TrimCommandLine(char *command);
 void SaveInHistory(char *command);
 int FetchingBang(char *command);
+int FindAndIgnore$(char *command);
