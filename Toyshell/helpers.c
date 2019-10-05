@@ -5,7 +5,7 @@
 #define MAX_COMMAND_LENGTH 512
 
 // initializing counter, prompt and terminated 
-int counter = 1, alias_count = 0;
+int counter = 1, alias_count = 0, bg_exec = 0;
 FILE *shell_name;
 FILE *shell_terminator;
 char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
@@ -178,7 +178,8 @@ void ProcessCommand (char * tokens[], int tokenCount){
         }
         
     }else { // meanwhile the parent process waits
-        waitpid(pid, NULL, 0);
+        if(!bg_exec)    
+            waitpid(pid, NULL, 0);
     }
 
     return; 
@@ -299,7 +300,6 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
     return 1;
 }
 
-
 /** This function uses pointer arithmetic to trim leading space characters
  *  out of command entered. As long as a character in the command is a white
  *  space, we delete it (assigning \0 to it) and increment to starting address
@@ -397,4 +397,18 @@ int FindAndIgnore$(char *commandLine){
     }
     
     return i;
+}
+
+int Background(char *commandLine){
+    int i = strlen(commandLine) - 2;
+
+    for (; i > 0; i++){
+        if(commandLine[i] == '-'){
+            commandLine[i] = '\n';
+            bg_exec = 1;
+            break;
+        }
+    }
+    
+    return bg_exec;
 }
