@@ -11,6 +11,7 @@
 char prompt[128];
 char terminator[128];
 char aliases_buffer[10][2];
+extern char *environ[];
 
 
 void StopTheShell();

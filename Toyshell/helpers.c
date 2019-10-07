@@ -9,6 +9,8 @@ int counter = 1, alias_count = 0, bg_exec = 0;
 FILE *shell_name;
 FILE *shell_terminator;
 char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
+char *environ[] = {(char*)0 };
+
 /* struct history_entry{
     int idx;
     char entry[MAX_COMMAND_LENGTH];
@@ -46,6 +48,7 @@ int ExecuteShellProgram() {
                 TrimCommandLine(rawCommand);
 
             FindAndIgnore$(rawCommand);
+            Background(rawCommand); // exec in bg?
             while(FetchingBang(rawCommand))// '!' needs to be processed before tokenizing
                 ; 
 
@@ -162,24 +165,28 @@ int TokenizeCommandLine( char *tokens[], char *buff){
  * @return
 */
 void ProcessCommand (char * tokens[], int tokenCount){
+    int status;
 
     if (!IsBuiltinCommand(tokens, tokenCount))
         return;
     
+    *environ = getenv("PATH");  // fetch the value of the PATH environment variable
+
     __pid_t pid = fork();
     if (pid < 0){
         perror(prompt);
 
-    }else if (pid == 0) { //the command is executed in the child process
-
-        if (execvp(tokens[0], tokens)){
-            perror(prompt);
-            exit(EXIT_FAILURE);
+    }else if (pid == 0) {                           //the command is executed in the child process
+        if(access(tokens[0], F_OK) == 0){           // check wether the program file exists or not
+            if (execve(tokens[0], tokens, environ)){
+                perror(prompt);
+                exit(EXIT_FAILURE);
+            }
         }
         
     }else { // meanwhile the parent process waits
         if(!bg_exec)    
-            waitpid(pid, NULL, 0);
+            wait(&status);
     }
 
     return; 
@@ -201,6 +208,15 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
     	}
     	StopTheShell();
     }
+
+    if (!strcmp(tokens[0], "backjobs"))
+    {
+        if (tokenCount > 1){
+       		printf ("toyshell: %s does not require any arguments.\n", tokens[0]);
+    	}
+
+    }
+    
 
     if (!strcmp(tokens[0],"setshellname")){
 
@@ -407,7 +423,12 @@ int Background(char *commandLine){
             commandLine[i] = '\n';
             bg_exec = 1;
             break;
+        }else
+        {
+            break;
         }
+        
+        
     }
     
     return bg_exec;
