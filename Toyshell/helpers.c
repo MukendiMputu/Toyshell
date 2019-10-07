@@ -94,7 +94,7 @@ int IsAlias(char *token){
 */
 int SetShellName(char *shellName){
     shell_name = fopen("shell_name.txt","w+");
-    strcpy(prompt, shellName);
+    strncpy(prompt, shellName, strlen(shellName));
 
     if (shell_name)
         fputs(prompt, shell_name);
@@ -112,12 +112,12 @@ int SetShellName(char *shellName){
 */
 int SetShellTerminator(char *shellTerminator){
     shell_terminator = fopen("shell_terminator.txt","w+");
-    strcpy(terminator, shellTerminator);
+    strncpy(terminator, shellTerminator, strlen(shellTerminator));
 
     if (shell_terminator)
         fputs(terminator, shell_terminator);
     else{
-        printf("Failed to save shell name to a file!");
+        printf("Failed to save shell terminator to a file!");
         return EXIT_FAILURE;
     }
     fclose(shell_terminator);
