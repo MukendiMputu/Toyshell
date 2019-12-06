@@ -1,4 +1,4 @@
-# Toyshell: Assignment from a CS 'Operating Systems'
+# Toyshell: Assignment from CS 'Operating Systems'
 
 ## PART 1
 
