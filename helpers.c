@@ -4,7 +4,7 @@
 #define MAX_COMMAND_IN_HISTORY 10
 #define MAX_COMMAND_LENGTH 32
 
-// initializing counter, prompt and terminated 
+// initializing counter, prompt and terminated
 int counter = 1;
 FILE *shell_name;
 FILE *shell_terminator;
@@ -12,25 +12,25 @@ char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
 
 // Loop until the program is terminated
 int ExecuteShellProgram() {
-    
+
     int tokenNumb = 0;                                          // will be use to count to CL tokens
     size_t lineBuff = 256;                                      // size of a raw command entered by the user
     char *rawCommand = (char *) malloc(sizeof(char)*lineBuff);
-    
+
     char* commandTokens[] = {"", "", "", "", "", "", "", ""};
-    
+
     /* Loop until the program is terminated */
     while (1){
 
         //print out the prompt and wait... if user entered a command, then tokenize and process in
         printf("%s[%i]%s ", prompt, counter, terminator);
-        
+
         if(getline(&rawCommand, &lineBuff, stdin) != -1){
-            
+
             if((rawCommand != NULL) && (rawCommand[0] != '\n')){
-                
+
                 SaveInHistory(rawCommand); //put command in history_buffer
-                counter++; 
+                counter++;
             }
 
             if(rawCommand[0] == ' ')
@@ -62,7 +62,7 @@ void StopTheShell (){
 /* looks up for command aliases in an array
  * @param token alias to look up for
  * @return 1 when found and 0 when not contained
- */ 
+ */
 int IsAlias(char *token){
     /* for (int i = 0; i < sizeof(history_buffer); i++)
     {
@@ -70,7 +70,7 @@ int IsAlias(char *token){
             return EXIST_FAILURE;
         }
     } */
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -110,7 +110,7 @@ int SetShellTerminator(char *shellTerminator){
     return EXIT_SUCCESS;
 }
 
-/* 
+/*
  * @param
  * @return
  */
@@ -156,7 +156,7 @@ void ProcessCommand (char * tokens[], int tokenCount){
 
     if (!IsBuiltinCommand(tokens, tokenCount))
         return;
-    
+
     __pid_t pid = fork();
     if (pid < 0){
         perror(prompt);
@@ -167,23 +167,23 @@ void ProcessCommand (char * tokens[], int tokenCount){
             perror(prompt);
             exit(EXIT_FAILURE);
         }
-        
+
     }else { // meanwhile the parent process waits
         waitpid(pid, NULL, 0);
     }
 
-    return; 
+    return;
 }
 
 /* identifies the customed commands
- * @param 
+ * @param
  * @return
- */ 
+ */
 int IsBuiltinCommand (char * tokens[], int tokenCount){
-    
+
     if (tokens[0] == NULL)
         return EXIT_FAILURE;
-    
+
     if (!strcmp(tokens[0],"stop")){
 
     	if (tokenCount > 1){
@@ -232,7 +232,7 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
        		printf ("toyshell: Usage %s <new_name> | <new_name> <old_name>.\n", tokens[0]);
             return EXIT_SUCCESS;
     	}
-    	// ToDo 
+    	// ToDo
         /**
          * for every entry in aliases_buffer
          *    if compare to token[1] positive
@@ -283,14 +283,14 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
  *  space, we delete it (assigning \0 to it) and increment to starting address
  *  our pointer points to by one.
  *  @param char *commandLine - raw command
- *  @return 
+ *  @return
  */
 void TrimCommandLine(char *commandLine){
     char *temp = commandLine;
 
     do{
         *temp = '\0'; // deletion
-        temp += 1;    // incrementing address 
+        temp += 1;    // incrementing address
         temp++; // fetching the next character
     }while(*temp == ' ');
     memset(commandLine, 0, strlen(commandLine));
@@ -308,9 +308,9 @@ void SaveInHistory(char *commandLine){
             memcpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
             memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
         }
-        //...then with memset reset the memory 
+        //...then with memset reset the memory
         memset(history_buffer[0], 0, strlen(history_buffer[0]));
-        
+
         for(int idxShift = 0; idxShift < 9; idxShift++) {
 
             memcpy(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
@@ -339,12 +339,12 @@ void FetchingBang(char *commandLine){
             }
             memset(commandLine, 0, strlen(commandLine));
             memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
-            
+
         }
 
         int pos = commandLine[2]-48; //in ASCII numbers start from 48
         memset(commandLine, 0, strlen(commandLine));
         memcpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
-        
+
     }
 }

@@ -12,3 +12,6 @@ Toyshell/backup/shell.c
 Toyshell/backup/tsh.c
 Toyshell/backup/helpers.h
 Toyshell/_backup.zip
+toyshell
+tsh.o
+helpers.o
