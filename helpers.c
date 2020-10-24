@@ -10,6 +10,10 @@ FILE *shell_name;
 FILE *shell_terminator;
 char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
 
+char prompt[128];
+char terminator[128];
+char aliases_buffer[10][2];
+
 // Loop until the program is terminated
 int ExecuteShellProgram() {
 

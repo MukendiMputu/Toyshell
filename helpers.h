@@ -1,3 +1,6 @@
+#ifndef HEPERS_H
+#define HELPERS_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,9 +10,9 @@
 #include <signal.h>
 #include <ctype.h>
 
-char prompt[128];
-char terminator[128];
-char aliases_buffer[10][2];
+extern char prompt[128];
+extern char terminator[128];
+extern char aliases_buffer[10][2];
 
 
 void StopTheShell();
@@ -23,3 +26,5 @@ int IsBuiltinCommand (char * tokens[], int tokenCount);
 void TrimCommandLine(char *command);
 void SaveInHistory(char *command);
 void FetchingBang(char *command);
+
+#endif
