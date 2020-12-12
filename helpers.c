@@ -3,6 +3,7 @@
 
 #define MAX_COMMAND_IN_HISTORY 10
 #define MAX_COMMAND_LENGTH 32
+#define READ_WRITE 0666 /* RW for owner, group, others */
 
 // initializing counter, prompt and terminated
 int counter = 1;
@@ -33,7 +34,8 @@ int ExecuteShellProgram() {
 
             if((rawCommand != NULL) && (rawCommand[0] != '\n')){
 
-                SaveInHistory(rawCommand); //put command in history_buffer
+                //SaveInHistory(rawCommand); //put command in history_buffer
+                captureHistory(rawCommand);
                 counter++;
             }
 
@@ -326,6 +328,17 @@ void SaveInHistory(char *commandLine){
     } else {
         memcpy(history_buffer[counter-1], commandLine, strlen(commandLine));
     }
+}
+
+void captureHistory(char *commandLine){
+    int fd;
+    char *historyFile = "history";
+
+    mkfifo(historyFile, READ_WRITE);
+    if((fd = open(historyFile, O_RDWR)) == -1)
+        printf("Failed to open history file for reading!");
+    write(fd, commandLine, strlen(commandLine)+1);
+    close(fd);
 }
 
 void FetchingBang(char *commandLine){

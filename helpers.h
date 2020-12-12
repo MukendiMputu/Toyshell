@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <ctype.h>
+#include <fcntl.h>
 
 extern char prompt[128];
 extern char terminator[128];
@@ -26,5 +27,7 @@ int IsBuiltinCommand (char * tokens[], int tokenCount);
 void TrimCommandLine(char *command);
 void SaveInHistory(char *command);
 void FetchingBang(char *command);
+void captureHistory(char *command);
+int mkfifo(const char *pathname, mode_t mode);
 
 #endif
