@@ -15,3 +15,5 @@ Toyshell/_backup.zip
 toyshell
 tsh.o
 helpers.o
+Toyshell/shell_terminator.txt
+

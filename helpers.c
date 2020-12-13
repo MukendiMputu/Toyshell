@@ -9,9 +9,22 @@
 int fd;
 char *historyFile = "history";
 int counter = 1;
+
 FILE *shell_name;
 FILE *shell_terminator;
 char history_buffer[MAX_COMMAND_IN_HISTORY][MAX_COMMAND_LENGTH];
+char *environ[] = {(char*)0 };
+
+/* struct history_entry{
+    int idx;
+    char entry[MAX_COMMAND_LENGTH];
+} history_buffer[10] = {1, "", 2, "", 3, "", 4, "", 5, "", 6, "", 7, "", 8, "", 9, "", 10, ""}; */
+
+struct alias{
+    char *name;
+    char *substitute;
+} aliases[10] = {"aa", "", "bb", "", "cc", "", "dd", "", "ee", "", "ff", "", "gg", "", "hh", "", "ii", "", "jj", ""};
+
 
 char prompt[128];
 char terminator[128];
@@ -21,8 +34,9 @@ char aliases_buffer[10][2];
 int ExecuteShellProgram() {
 
     int tokenNumb = 0;                                          // will be use to count to CL tokens
-    size_t lineBuff = 256;                                      // size of a raw command entered by the user
+    size_t lineBuff = 256;       
     char *rawCommand = (char *) malloc(sizeof(char)*lineBuff);
+
 
     char* commandTokens[] = {"", "", "", "", "", "", "", ""};
 
@@ -44,7 +58,10 @@ int ExecuteShellProgram() {
             if(rawCommand[0] == ' ')
                 TrimCommandLine(rawCommand);
 
-            FetchingBang(rawCommand); // '!' needs to be processed before tokenizing
+            FindAndIgnore$(rawCommand);
+            Background(rawCommand); // exec in bg?
+            while(FetchingBang(rawCommand))// '!' needs to be processed before tokenizing
+                ; 
 
             tokenNumb = TokenizeCommandLine(commandTokens, rawCommand);
             ProcessCommand(commandTokens, tokenNumb);
@@ -88,7 +105,7 @@ int IsAlias(char *token){
 */
 int SetShellName(char *shellName){
     shell_name = fopen("shell_name.txt","w+");
-    strcpy(prompt, shellName);
+    strncpy(prompt, shellName, strlen(shellName));
 
     if (shell_name)
         fputs(prompt, shell_name);
@@ -106,12 +123,12 @@ int SetShellName(char *shellName){
 */
 int SetShellTerminator(char *shellTerminator){
     shell_terminator = fopen("shell_terminator.txt","w+");
-    strcpy(terminator, shellTerminator);
+    strncpy(terminator, shellTerminator, strlen(shellTerminator));
 
     if (shell_terminator)
         fputs(terminator, shell_terminator);
     else{
-        printf("Failed to save shell name to a file!");
+        printf("Failed to save shell terminator to a file!");
         return EXIT_FAILURE;
     }
     fclose(shell_terminator);
@@ -128,9 +145,7 @@ int TokenizeCommandLine( char *tokens[], char *buff){
 	int num_chars = strnlen(buff, 256);
     char *workCommand = (char *) malloc(sizeof(buff));
 
-    //TrimCommandLine(buff);
-
-	strncpy(workCommand, buff, num_chars);
+    strncpy(workCommand, buff, num_chars);
 
     for (int i = 0; i < num_chars; i++) {
 		switch (workCommand[i]) {
@@ -161,6 +176,7 @@ int TokenizeCommandLine( char *tokens[], char *buff){
  * @return
 */
 void ProcessCommand (char * tokens[], int tokenCount){
+    int status;
 
     if (!IsBuiltinCommand(tokens, tokenCount))
         return;
@@ -169,15 +185,17 @@ void ProcessCommand (char * tokens[], int tokenCount){
     if (pid < 0){
         perror(prompt);
 
-    }else if (pid == 0) { //the command is executed in the child process
-
-        if (execvp(tokens[0], tokens)){
-            perror(prompt);
-            exit(EXIT_FAILURE);
+    }else if (pid == 0) {                           //the command is executed in the child process
+        if(access(tokens[0], F_OK) == 0){           // check wether the program file exists or not
+            if (execve(tokens[0], tokens, environ)){
+                perror(prompt);
+                exit(EXIT_FAILURE);
+            }
         }
 
     }else { // meanwhile the parent process waits
-        waitpid(pid, NULL, 0);
+        if(!bg_exec)    
+            wait(&status);
     }
 
     return;
@@ -199,6 +217,15 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
     	}
     	StopTheShell();
     }
+
+    if (!strcmp(tokens[0], "backjobs"))
+    {
+        if (tokenCount > 1){
+       		printf ("toyshell: %s does not require any arguments.\n", tokens[0]);
+    	}
+
+    }
+    
 
     if (!strcmp(tokens[0],"setshellname")){
 
@@ -249,6 +276,18 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
          *    if compare to token[1] positive
          *      then override corresponding entry with token[2]
          */
+        for (int i = 0; i < 10; i++){
+            if (tokens[1] = aliases[i].name)
+                aliases[i].substitute = tokens[2];
+        }
+            if(alias_count <10){
+                aliases[alias_count].name = tokens[1];
+                aliases[alias_count].substitute = tokens[2];
+            }else
+            {
+                printf("Alias's buffer is full. You should override one of the existing alias.\n");
+            }
+            
         return EXIT_SUCCESS;
     }
 
@@ -304,8 +343,8 @@ void TrimCommandLine(char *commandLine){
         temp += 1;    // incrementing address
         temp++; // fetching the next character
     }while(*temp == ' ');
-    memset(commandLine, 0, strlen(commandLine));
-    memcpy(commandLine, temp, strlen(temp));
+    memset(commandLine, 0, sizeof(commandLine));
+    strncpy(commandLine, temp, sizeof(temp));
 
 }
 
@@ -314,24 +353,28 @@ void SaveInHistory(char *commandLine){
 
         // in order to simulate a stack, we'll use a temporary buffer for  
         char shift_buffer[MAX_COMMAND_IN_HISTORY-1][MAX_COMMAND_LENGTH];
+        for (int i = 0 ; i < 9; i++)
+            memset(history_buffer[i], 0, sizeof(history_buffer[i]));
+        
+        
         for(int idxShift = 0; idxShift < 9; idxShift++){
-            //transfering the actual content of the history_buffer with memcpy,..
-            memcpy(shift_buffer[idxShift], history_buffer[idxShift+1], strlen(history_buffer[idxShift+1]));
-            memset(history_buffer[idxShift+1], 0, strlen(history_buffer[idxShift+1]));
+            //transfering the actual content of the history_buffer with strncpy,..
+            strncpy(shift_buffer[idxShift], history_buffer[idxShift+1], sizeof(history_buffer[idxShift+1]));
+            memset(history_buffer[idxShift+1], 0, sizeof(history_buffer[idxShift+1]));
         }
         //...then with memset reset the memory
         memset(history_buffer[0], 0, strlen(history_buffer[0]));
 
         for(int idxShift = 0; idxShift < 9; idxShift++) {
 
-            memcpy(history_buffer[idxShift], shift_buffer[idxShift], strlen(shift_buffer[idxShift]));
-            memset(shift_buffer[idxShift], 0, strlen(shift_buffer[idxShift]));
+            strncpy(history_buffer[idxShift], shift_buffer[idxShift], sizeof(shift_buffer[idxShift]));
+            memset(shift_buffer[idxShift], 0, sizeof(shift_buffer[idxShift]));
         }
-        memset(history_buffer[9], 0, strlen(history_buffer[9]));
-        memcpy(history_buffer[9], commandLine, strlen(commandLine)); // copying the new command entered
+        memset(history_buffer[9], 0, sizeof(history_buffer[9]));
+        strncpy(history_buffer[9], commandLine, sizeof(commandLine)); // copying the new command entered
 
     } else {
-        memcpy(history_buffer[counter-1], commandLine, strlen(commandLine));
+        strncpy(history_buffer[counter-1], commandLine, sizeof(commandLine));
     }
 }
 
@@ -359,14 +402,14 @@ void FetchingBang(char *commandLine){
     if (commandLine[0] == '!'){
         if (strlen(commandLine) > 5){
             printf ("toyshell: Usage ! <n> \n\t\twith n between 1 and 10.\n");
-            return;
+            return 0;
         }
         if (strlen(commandLine) == 2 || strlen(commandLine) == 5){
-            if (strlen(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
+            if (sizeof(commandLine) == 5 && (commandLine[2]+commandLine[3]) >= 2){
                 printf("toyshell: Enter a number between 1 and 10.\n");
-                memset(commandLine, 0, strlen(commandLine));
-                //memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
-                return;
+                memset(commandLine, 0, sizeof(commandLine));
+                
+                return 0;
             }
             memset(commandLine, 0, strlen(commandLine));
             memcpy(commandLine, history_buffer[9], strlen(history_buffer[9]));
@@ -378,4 +421,5 @@ void FetchingBang(char *commandLine){
         memcpy(commandLine, history_buffer[pos-1], strlen(history_buffer[pos-1]));
 
     }
+    
 }

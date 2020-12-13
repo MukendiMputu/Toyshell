@@ -15,6 +15,12 @@
 extern char prompt[128];
 extern char terminator[128];
 extern char aliases_buffer[10][2];
+#include <math.h>
+
+char prompt[128];
+char terminator[128];
+char aliases_buffer[10][2];
+extern char *environ[];
 
 
 void StopTheShell();
@@ -30,5 +36,8 @@ void SaveInHistory(char *command);
 void FetchingBang(char *command);
 void captureHistory(char *command);
 void printHistory();
+
+int FindAndIgnore$(char *command);
+int Background(char *command);
 
 #endif
