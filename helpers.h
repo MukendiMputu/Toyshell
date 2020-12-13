@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <signal.h>
 #include <ctype.h>
@@ -28,6 +29,6 @@ void TrimCommandLine(char *command);
 void SaveInHistory(char *command);
 void FetchingBang(char *command);
 void captureHistory(char *command);
-int mkfifo(const char *pathname, mode_t mode);
+void printHistory();
 
 #endif

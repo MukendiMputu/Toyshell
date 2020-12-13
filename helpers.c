@@ -6,6 +6,8 @@
 #define READ_WRITE 0666 /* RW for owner, group, others */
 
 // initializing counter, prompt and terminated
+int fd;
+char *historyFile = "history";
 int counter = 1;
 FILE *shell_name;
 FILE *shell_terminator;
@@ -225,8 +227,11 @@ int IsBuiltinCommand (char * tokens[], int tokenCount){
             return EXIT_SUCCESS;
     	}
     	for (int i = 0; i < MAX_COMMAND_IN_HISTORY; i++){
-            if (*history_buffer[i] != '\0')
-                printf("%i %s", i+1, history_buffer[i]);
+
+            // if (*history_buffer[i] != '\0')
+            //     printf("%i %s", i+1, history_buffer[i]);
+            printf("%i ", i+1);
+            printHistory();
         }
         printf("\n");
         return EXIT_SUCCESS;
@@ -331,13 +336,22 @@ void SaveInHistory(char *commandLine){
 }
 
 void captureHistory(char *commandLine){
-    int fd;
-    char *historyFile = "history";
 
     mkfifo(historyFile, READ_WRITE);
     if((fd = open(historyFile, O_RDWR)) == -1)
         printf("Failed to open history file for reading!");
     write(fd, commandLine, strlen(commandLine)+1);
+    close(fd);
+}
+
+void printHistory() {
+    
+    char command[256];
+
+    fd = open(historyFile, O_RDONLY);
+    read(fd, command, sizeof(command));
+
+    printf(" %s", command);
     close(fd);
 }
 
