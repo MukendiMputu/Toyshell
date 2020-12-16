@@ -33,7 +33,7 @@ int SetShellTerminator(char *shell_terminator);
 int IsBuiltinCommand (char * tokens[], int tokenCount);
 void TrimCommandLine(char *command);
 void SaveInHistory(char *command);
-void FetchingBang(char *command);
+int FetchingBang(char *command);
 void captureHistory(char *command);
 void printHistory();
 

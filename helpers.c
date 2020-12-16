@@ -8,7 +8,7 @@
 // initializing counter, prompt and terminated
 int fd;
 char *historyFile = "history";
-int counter = 1;
+int alias_count, bg_exec = 0, counter = 1;
 
 FILE *shell_name;
 FILE *shell_terminator;
@@ -398,7 +398,7 @@ void printHistory() {
     close(fd);
 }
 
-void FetchingBang(char *commandLine){
+int FetchingBang(char *commandLine){
     if (commandLine[0] == '!'){
         if (strlen(commandLine) > 5){
             printf ("toyshell: Usage ! <n> \n\t\twith n between 1 and 10.\n");
