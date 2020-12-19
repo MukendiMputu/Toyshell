@@ -17,9 +17,6 @@ extern char terminator[128];
 extern char aliases_buffer[10][2];
 #include <math.h>
 
-char prompt[128];
-char terminator[128];
-char aliases_buffer[10][2];
 extern char *environ[];
 
 

@@ -58,8 +58,6 @@ int ExecuteShellProgram() {
             if(rawCommand[0] == ' ')
                 TrimCommandLine(rawCommand);
 
-            FindAndIgnore$(rawCommand);
-            Background(rawCommand); // exec in bg?
             while(FetchingBang(rawCommand))// '!' needs to be processed before tokenizing
                 ; 
 
